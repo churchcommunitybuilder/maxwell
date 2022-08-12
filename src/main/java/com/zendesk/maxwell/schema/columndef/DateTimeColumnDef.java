@@ -3,6 +3,7 @@ package com.zendesk.maxwell.schema.columndef;
 import com.zendesk.maxwell.producer.MaxwellOutputConfig;
 
 import java.sql.Timestamp;
+import java.time.DateTimeException;
 
 public class DateTimeColumnDef extends ColumnDefWithLength {
 
@@ -34,6 +35,14 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 			String dateString = DateFormatter.formatDateTime(value, ts);
 			return appendFractionalSeconds(dateString, ts.getNanos(), getColumnLength());
 		} catch ( IllegalArgumentException e ) {
+			if ( config.zeroDatesAsNull ) {
+				return null;
+			}
+			throw new ColumnDefCastException(this, value);
+		} catch ( DateTimeException e ) {
+			if ( config.zeroDatesAsNull ) {
+				return null;
+			}
 			throw new ColumnDefCastException(this, value);
 		}
 	}

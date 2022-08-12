@@ -1,5 +1,7 @@
 package com.zendesk.maxwell.schema.columndef;
 
+import java.time.DateTimeException;
+
 import com.zendesk.maxwell.producer.MaxwellOutputConfig;
 
 public class DateColumnDef extends ColumnDef {
@@ -39,6 +41,14 @@ public class DateColumnDef extends ColumnDef {
 		try {
 			return DateFormatter.formatDate(value);
 		} catch ( IllegalArgumentException e ) {
+			if ( config.zeroDatesAsNull ) {
+				return null;
+			}
+			throw new ColumnDefCastException(this, value);
+		} catch ( DateTimeException e ) {
+			if ( config.zeroDatesAsNull ) {
+				return null;
+			}
 			throw new ColumnDefCastException(this, value);
 		}
 	}
