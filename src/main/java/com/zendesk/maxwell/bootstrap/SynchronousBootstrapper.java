@@ -244,6 +244,8 @@ public class SynchronousBootstrapper {
 			else if (columnDefinition instanceof DateTimeColumnDef)
 				try {
 					columnValue = resultSet.getObject(columnIndex);
+				} catch ( SQLException e ) {
+					columnValue = null;
 				} catch ( DateTimeException e ) {
 					columnValue = null;
 				}
