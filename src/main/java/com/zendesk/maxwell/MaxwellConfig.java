@@ -146,7 +146,7 @@ public class MaxwellConfig extends AbstractConfig {
 	public int bufferedProducerSize;
 
 	/**
-	 * database|table|primary_key|transaction_id|column|random<br>
+	 * database|table|database_table|primary_key|transaction_id|column|random<br>
 	 * Input for partition choice function
 	 */
 	public String producerPartitionKey;

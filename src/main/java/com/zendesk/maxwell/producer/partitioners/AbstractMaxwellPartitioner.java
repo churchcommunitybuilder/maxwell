@@ -22,6 +22,8 @@ public abstract class AbstractMaxwellPartitioner {
 				return PartitionBy.TABLE;
 			case "database":
 				return PartitionBy.DATABASE;
+			case "database_table":
+				return PartitionBy.DATABASE_TABLE;
 			case "primary_key":
 				return PartitionBy.PRIMARY_KEY;
 			case "transaction_id":
@@ -63,6 +65,14 @@ public abstract class AbstractMaxwellPartitioner {
 					return t;
 			case DATABASE:
 				return r.getDatabase();
+			case DATABASE_TABLE:
+				String database = r.getDatabase();
+				String table = r.getTable();
+
+				if (table == null)
+					return getHashString(r, partitionByFallback);
+				else
+					return database.concat(table);
 			case PRIMARY_KEY:
 				return r.getRowIdentity().toConcatString();
 			case TRANSACTION_ID:
