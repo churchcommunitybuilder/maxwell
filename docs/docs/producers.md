@@ -218,7 +218,12 @@ See the [AWS docs](http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/cr
 In case you need to set up a different region also along with credentials then default one, see the [AWS docs](http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html#setup-credentials-setting-region).
 
 ## Options
-Set the output queue in the `config.properties` by setting the `sqs_queue_uri` property to full SQS queue uri from AWS console.
+Set the output queue in the `config.properties` by setting the following properites
+
+- **sqs_signing_region**: the region to use for SigV4 signing of requests. e.g. `us-east-1`
+- **sqs_service_endpoint**: the service endpoint either with or without the protocol (e.g. `https://sns.us-west-1.amazonaws.com` or `sns.us-west-1.amazonaws.com`)
+- **sqs_queue_uri**: the full SQS queue uri from AWS console. e.g. `https://sqs.us-east-1.amazonaws.com/xxxxxxxxxxxx/maxwell`
+
 
 The producer uses the [AWS SQS SDK](http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sqs/AmazonSQSClient.html).
 
@@ -260,6 +265,34 @@ for DDL updates by setting the `ddl_pubsub_topic` property.
 
 The producer uses the [Google Cloud Java Library for Pub/Sub](https://github.com/GoogleCloudPlatform/google-cloud-java/tree/master/google-cloud-pubsub) and uses its built-in configurations.
 
+# Google Cloud BigQuery
+***
+To stream data into Google Cloud Bigquery, first there must be a table created on bigquery in order to stream the data
+into defined as `bigquery_project_id.bigquery_dataset.bigquery_table`. The schema of the table must match the outputConfig. The column types should be defined as below
+
+- database: string 
+- table: string                                                                                                    
+- type: string                                                                                                     
+- ts: integer                                                                                                      
+- xid: integer                                                                                                     
+- xoffset: integer                                                                                                 
+- commit: boolean                                                                                                  
+- position: string                                                                                                 
+- gtid: string                                                                                                     
+- server_id: integer                                                                                               
+- primary_key: string                                                                                              
+- data: string                                                                                                     
+- old: string
+
+See the Google Cloud Platform docs for the [latest examples of which permissions are needed](https://cloud.google.com/bigquery/docs/access-control), as well as [how to properly configure service accounts](https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances).
+
+Set the output stream in `config.properties` by setting the `bigquery_project_id`, `bigquery_dataset` and `bigquery_table` properties.
+
+The producer uses the [Google Cloud Java Bigquery Storage Library for Bigquery](https://github.com/googleapis/java-bigquerystorage) [Bigquery Storage Write API documenatation](https://cloud.google.com/bigquery/docs/write-api).
+To use the Storage Write API, you must have `bigquery.tables.updateData` permissions.
+
+This producer is using the Default Stream with at-least once semantics for greater data resiliency and fewer scaling restrictions
+
 # RabbitMQ
 ***
 To produce messages to RabbitMQ, you will need to specify a host in `config.properties` with `rabbitmq_host`. This is the only required property, everything else falls back to a sane default.
@@ -269,6 +302,7 @@ The remaining configurable properties are:
 - `rabbitmq_user` - defaults to **guest**
 - `rabbitmq_pass` - defaults to **guest**
 - `rabbitmq_virtual_host` - defaults to **/**
+- `rabbitmq_handshake_timeout` - defaults to **10000**
 - `rabbitmq_exchange` - defaults to **maxwell**
 - `rabbitmq_exchange_type` - defaults to **fanout**
 - `rabbitmq_exchange_durable` - defaults to **false**

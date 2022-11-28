@@ -2,6 +2,11 @@ grammar mysql_indices;
 
 import mysql_literal_tokens, mysql_idents;
 
+if_not_exists:
+  IF NOT EXISTS;
+
+exists_or_not: IF NOT? EXISTS;
+
 index_definition:
   (index_type_1 | index_type_pk | index_type_3 | index_type_4 | index_type_5 | index_type_check);
 
@@ -9,13 +14,13 @@ index_type_1:
   index_or_key exists_or_not? index_name? index_type? index_column_list index_options*;
 
 index_type_pk:
-  index_constraint? PRIMARY KEY (index_type | index_name)* index_column_list index_options*;
+  index_constraint? PRIMARY KEY if_not_exists? (index_type | index_name)* index_column_list index_options*;
 
 index_type_3:
-  index_constraint? UNIQUE index_or_key? index_name? index_type? index_column_list index_options*;
+  index_constraint? UNIQUE if_not_exists? index_or_key? index_name? index_type? index_column_list index_options*;
 
 index_type_4:
-  (FULLTEXT | SPATIAL) index_or_key? index_name? index_column_list index_options*;
+  (FULLTEXT | SPATIAL) index_or_key? if_not_exists? index_name? index_column_list index_options*;
 
 index_type_5:
   index_constraint? FOREIGN KEY exists_or_not? index_name? index_column_list reference_definition;
@@ -67,5 +72,3 @@ reference_definition_on_update:
 
 reference_option:
   (RESTRICT | CASCADE | SET NULL | NO ACTION);
-
-exists_or_not: IF NOT? EXISTS;

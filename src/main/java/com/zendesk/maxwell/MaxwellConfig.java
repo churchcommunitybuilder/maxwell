@@ -70,6 +70,13 @@ public class MaxwellConfig extends AbstractConfig {
 	public Filter filter;
 
 	/**
+	 * Ignore any missing database / table schemas, unless they're
+	 * included as part of filters. Default false.  Don't use unless
+	 * you really really need to.
+	 */
+	public Boolean ignoreMissingSchema;
+
+	/**
 	 * Attempt to use Mysql GTIDs to keep track of position
 	 */
 	public Boolean gtidMode;
@@ -179,6 +186,16 @@ public class MaxwellConfig extends AbstractConfig {
 	public String sqsQueueUri;
 
 	/**
+	 * {@link com.zendesk.maxwell.producer.MaxwellSQSProducer} Queue Service Endpoint URL
+	 */
+	public String sqsServiceEndpoint;
+
+	/**
+	 * {@link com.zendesk.maxwell.producer.MaxwellSQSProducer} Queue Signing region
+	 */
+	public String sqsSigningRegion;
+
+	/**
 	 * {@link com.zendesk.maxwell.producer.MaxwellSQSProducer} topic
 	 */
 	public String snsTopic;
@@ -214,6 +231,11 @@ public class MaxwellConfig extends AbstractConfig {
 	public Long pubsubMessageCountBatchSize;
 
 	/**
+	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} message ordering key template (will enable message ordering if specified)
+	 */
+	public String pubsubMessageOrderingKey;
+
+	/**
 	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} publish delay threshold
 	 */
 	public Duration pubsubPublishDelayThreshold;
@@ -226,7 +248,7 @@ public class MaxwellConfig extends AbstractConfig {
 	/**
 	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} retry delay multiplier
 	 */
-	public Double pubsubRetryDelayMultiplier;
+	public Float pubsubRetryDelayMultiplier;
 
 	/**
 	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} max retry delay
@@ -241,7 +263,7 @@ public class MaxwellConfig extends AbstractConfig {
 	/**
 	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} RPC timeout multiplier
 	 */
-	public Double pubsubRpcTimeoutMultiplier;
+	public Float pubsubRpcTimeoutMultiplier;
 
 	/**
 	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} max RPC timeout
@@ -252,6 +274,27 @@ public class MaxwellConfig extends AbstractConfig {
 	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} total timeout
 	 */
 	public Duration pubsubTotalTimeout;
+
+	/**
+	 * {@link com.zendesk.maxwell.producer.MaxwellPubsubProducer} emulator host to use, if specified
+	 */
+	public String pubsubEmulator;
+
+	/**
+	 * {@link com.zendesk.maxwell.producer.MaxwellBigQueryProducer} project id
+	 */
+	public String bigQueryProjectId;
+
+	/**
+	 * {@link com.zendesk.maxwell.producer.MaxwellBigQueryProducer} dataset
+	 */
+	public String bigQueryDataset;
+
+	/**
+	 * {@link com.zendesk.maxwell.producer.MaxwellBigQueryProducer} table
+	 */
+	public String bigQueryTable;
+
 
 	/**
 	 * Used in all producers deriving from {@link com.zendesk.maxwell.producer.AbstractAsyncProducer}.<br>
@@ -456,6 +499,11 @@ public class MaxwellConfig extends AbstractConfig {
 	public String rabbitmqURI;
 
 	/**
+	 * {@link com.zendesk.maxwell.producer.RabbitmqProducer} handshake timeout
+	 */
+	public Integer rabbitmqHandshakeTimeout;
+
+	/**
 	 * {@link com.zendesk.maxwell.producer.RabbitmqProducer} exchange
 	 */
 	public String rabbitmqExchange;
@@ -635,7 +683,7 @@ public class MaxwellConfig extends AbstractConfig {
 		parser.section("mysql");
 
 		parser.accepts( "binlog_heartbeat", "enable binlog replication heartbeats, default false" )
-			.withOptionalArg().ofType(Boolean.class);
+				.withOptionalArg().ofType(Boolean.class);
 
 		parser.accepts( "jdbc_options", "additional jdbc connection options: key1=val1&key2=val2" )
 				.withRequiredArg();
@@ -771,6 +819,10 @@ public class MaxwellConfig extends AbstractConfig {
 		parser.section("sqs");
 		parser.accepts( "sqs_queue_uri", "SQS Queue uri" )
 				.withRequiredArg();
+		parser.accepts( "sqs_service_endpoint", "SQS Service Endpoint" )
+				.withRequiredArg();
+		parser.accepts( "sqs_signing_region", "SQS Signing region" )
+				.withRequiredArg();
 
 		parser.section("sns");
 		parser.accepts("sns_topic", "SNS Topic ARN")
@@ -789,6 +841,14 @@ public class MaxwellConfig extends AbstractConfig {
 		parser.accepts( "nats_url", "Url(s) of Nats connection (comma separated). Default is localhost:4222" ).withRequiredArg();
 		parser.accepts( "nats_subject", "Subject Hierarchies of Nats. Default is '%{database}.%{table}'" ).withRequiredArg();
 
+		parser.section( "bigquery" );
+		parser.accepts( "bigquery_project_id", "provide a google cloud platform project id associated with the bigquery table" )
+				.withRequiredArg();
+		parser.accepts( "bigquery_dataset", "provide a google cloud platform dataset id associated with the bigquery table" )
+				.withRequiredArg();
+		parser.accepts( "bigquery_table", "provide a google cloud platform table id associated with the bigquery table" )
+				.withRequiredArg();
+
 		parser.section( "pubsub" );
 		parser.accepts( "pubsub_project_id", "provide a google cloud platform project id associated with the pubsub topic" )
 				.withRequiredArg();
@@ -800,22 +860,26 @@ public class MaxwellConfig extends AbstractConfig {
 				.withRequiredArg().ofType(Long.class);
 		parser.accepts( "pubsub_message_count_batch_size", "threshold in message count that triggers a batch to be sent. default: 1 message" )
 				.withRequiredArg().ofType(Long.class);
+		parser.accepts( "pubsub_message_ordering_key", "message ordering key template (will enable message ordering if specified). default: null" )
+				.withOptionalArg();
 		parser.accepts( "pubsub_publish_delay_threshold", "threshold in delay time (milliseconds) before batch is sent. default: 1 ms" )
 				.withRequiredArg().ofType(Long.class);
 		parser.accepts( "pubsub_retry_delay", "delay in millis before sending the first retry message. default: 100 ms" )
 				.withRequiredArg().ofType(Long.class);
 		parser.accepts( "pubsub_retry_delay_multiplier", "multiply by this ratio to increase delay time each retry. default: 1.3" )
-				.withRequiredArg();
+				.withRequiredArg().ofType(Float.class);
 		parser.accepts( "pubsub_max_retry_delay", "maximum retry delay time in seconds. default: 60 seconds" )
 				.withRequiredArg().ofType(Long.class);
 		parser.accepts( "pubsub_initial_rpc_timeout", "timeout for initial rpc call. default: 5 seconds" )
 				.withRequiredArg();
 		parser.accepts( "pubsub_rpc_timeout_multiplier", "backoff delay ratio for rpc timeout. default: 1.0" )
-				.withRequiredArg().ofType(Long.class);
+				.withRequiredArg().ofType(Float.class);
 		parser.accepts( "pubsub_max_rpc_timeout", "max delay in seconds for rpc timeout. default: 600 seconds" )
 				.withRequiredArg().ofType(Long.class);
 		parser.accepts( "pubsub_total_timeout", "maximum timeout in seconds (clamps exponential backoff)" )
 				.withRequiredArg().ofType(Long.class);
+		parser.accepts( "pubsub_emulator", "pubsub emulator host to use. default: null" )
+				.withOptionalArg();
 
 		parser.section( "output" );
 
@@ -846,7 +910,7 @@ public class MaxwellConfig extends AbstractConfig {
 		parser.accepts( "output_ddl", "produce DDL records. default: false" )
 				.withOptionalArg().ofType(Boolean.class);
 		parser.accepts( "output_push_timestamp", "include a microsecond timestamp representing when Maxwell sent a record. default: false" )
-			.withOptionalArg().ofType(Boolean.class);
+				.withOptionalArg().ofType(Boolean.class);
 		parser.accepts( "exclude_columns", "suppress these comma-separated columns from output" )
 				.withRequiredArg();
 		parser.accepts("secret_key", "The secret key for the AES encryption" )
@@ -858,6 +922,9 @@ public class MaxwellConfig extends AbstractConfig {
 
 		parser.accepts( "filter", "filter specs.  specify like \"include:db.*, exclude:*.tbl, include: foo./.*bar$/, exclude:foo.bar.baz=reject\"").withRequiredArg();
 
+		parser.accepts( "ignore_missing_schema", "Ignore missing database and table schemas.  Only use running with limited permissions." )
+				.withOptionalArg().ofType(Boolean.class);
+
 		parser.accepts( "javascript", "file containing per-row javascript to execute" ).withRequiredArg();
 
 		parser.section( "rabbitmq" );
@@ -867,6 +934,7 @@ public class MaxwellConfig extends AbstractConfig {
 		parser.accepts( "rabbitmq_host", "Host of Rabbitmq machine" ).withRequiredArg();
 		parser.accepts( "rabbitmq_port", "Port of Rabbitmq machine" ).withRequiredArg().ofType(Integer.class);
 		parser.accepts( "rabbitmq_uri", "URI to rabbit server, eg amqp://, amqps://.  other rabbitmq options take precendence over uri." ).withRequiredArg();
+		parser.accepts( "rabbitmq_handshake_timeout", "Handshake timeout of Rabbitmq connection in milliseconds" ).withOptionalArg().ofType(Integer.class);;
 		parser.accepts( "rabbitmq_virtual_host", "Virtual Host of Rabbitmq" ).withRequiredArg();
 		parser.accepts( "rabbitmq_exchange", "Name of exchange for rabbitmq publisher" ).withRequiredArg();
 		parser.accepts( "rabbitmq_exchange_type", "Exchange type for rabbitmq" ).withRequiredArg();
@@ -994,19 +1062,25 @@ public class MaxwellConfig extends AbstractConfig {
 		this.kafkaPartitionHash 	= fetchStringOption("kafka_partition_hash", options, properties, "default");
 		this.ddlKafkaTopic 		    = fetchStringOption("ddl_kafka_topic", options, properties, this.kafkaTopic);
 
+		this.bigQueryProjectId		= fetchStringOption("bigquery_project_id", options, properties, null);
+		this.bigQueryDataset		= fetchStringOption("bigquery_dataset", options, properties, null);
+		this.bigQueryTable			= fetchStringOption("bigquery_table", options, properties, null);
+
 		this.pubsubProjectId					= fetchStringOption("pubsub_project_id", options, properties, null);
 		this.pubsubTopic						= fetchStringOption("pubsub_topic", options, properties, "maxwell");
 		this.ddlPubsubTopic						= fetchStringOption("ddl_pubsub_topic", options, properties, this.pubsubTopic);
 		this.pubsubRequestBytesThreshold		= fetchLongOption("pubsub_request_bytes_threshold", options, properties, 1L);
 		this.pubsubMessageCountBatchSize		= fetchLongOption("pubsub_message_count_batch_size", options, properties, 1L);
+		this.pubsubMessageOrderingKey			= fetchStringOption("pubsub_message_ordering_key", options, properties, null);
 		this.pubsubPublishDelayThreshold		= Duration.ofMillis(fetchLongOption("pubsub_publish_delay_threshold", options, properties, 1L));
 		this.pubsubRetryDelay 					= Duration.ofMillis(fetchLongOption("pubsub_retry_delay", options, properties, 100L));
-		this.pubsubRetryDelayMultiplier 		= Double.parseDouble(fetchStringOption("pubsub_retry_delay_multiplier", options, properties, "1.3"));
+		this.pubsubRetryDelayMultiplier 		= fetchFloatOption("pubsub_retry_delay_multiplier", options, properties, 1.0f);
 		this.pubsubMaxRetryDelay 		 		= Duration.ofSeconds(fetchLongOption("pubsub_max_retry_delay", options, properties, 60L));
 		this.pubsubInitialRpcTimeout 		 	= Duration.ofSeconds(fetchLongOption("pubsub_initial_rpc_timeout", options, properties, 5L));
-		this.pubsubRpcTimeoutMultiplier 		= Double.parseDouble(fetchStringOption("pubsub_rpc_timeout_multiplier", options, properties, "1.0"));
+		this.pubsubRpcTimeoutMultiplier 		= fetchFloatOption("pubsub_rpc_timeout_multiplier", options, properties, 1.0f);
 		this.pubsubMaxRpcTimeout 		 		= Duration.ofSeconds(fetchLongOption("pubsub_max_rpc_timeout", options, properties, 600L));
 		this.pubsubTotalTimeout 		 		= Duration.ofSeconds(fetchLongOption("pubsub_total_timeout", options, properties, 600L));
+		this.pubsubEmulator						= fetchStringOption("pubsub_emulator", options, properties, null);
 
 		this.rabbitmqHost           		= fetchStringOption("rabbitmq_host", options, properties, null);
 		this.rabbitmqPort 			= fetchIntegerOption("rabbitmq_port", options, properties, null);
@@ -1014,6 +1088,7 @@ public class MaxwellConfig extends AbstractConfig {
 		this.rabbitmqPass			= fetchStringOption("rabbitmq_pass", options, properties, "guest");
 		this.rabbitmqVirtualHost    		= fetchStringOption("rabbitmq_virtual_host", options, properties, "/");
 		this.rabbitmqURI 			= fetchStringOption("rabbitmq_uri", options, properties, null);
+		this.rabbitmqHandshakeTimeout       = fetchIntegerOption("rabbitmq_handshake_timeout", options, properties, null);
 		this.rabbitmqExchange       		= fetchStringOption("rabbitmq_exchange", options, properties, "maxwell");
 		this.rabbitmqExchangeType   		= fetchStringOption("rabbitmq_exchange_type", options, properties, "fanout");
 		this.rabbitMqExchangeDurable 		= fetchBooleanOption("rabbitmq_exchange_durable", options, properties, false);
@@ -1066,6 +1141,8 @@ public class MaxwellConfig extends AbstractConfig {
 		this.kinesisMd5Keys = fetchBooleanOption("kinesis_md5_keys", options, properties, false);
 
 		this.sqsQueueUri = fetchStringOption("sqs_queue_uri", options, properties, null);
+		this.sqsServiceEndpoint = fetchStringOption("sqs_service_endpoint", options, properties, null);
+		this.sqsSigningRegion = fetchStringOption("sqs_signing_region", options, properties, null);
 
 		this.snsTopic = fetchStringOption("sns_topic", options, properties, null);
 		this.snsAttrs = fetchStringOption("sns_attrs", options, properties, null);
@@ -1099,6 +1176,7 @@ public class MaxwellConfig extends AbstractConfig {
 		this.enableHttpConfig = fetchBooleanOption("http_config", options, properties, false);
 
 		this.filterList          = fetchStringOption("filter", options, properties, null);
+		this.ignoreMissingSchema          =  fetchBooleanOption("ignore_missing_schema", options, properties, false);
 
 		setupInitPosition(options);
 
@@ -1252,6 +1330,10 @@ public class MaxwellConfig extends AbstractConfig {
 			usageForOptions("please specify a stream name for kinesis", "kinesis_stream");
 		} else if (this.producerType.equals("sqs") && this.sqsQueueUri == null) {
 			usageForOptions("please specify a queue uri for sqs", "sqs_queue_uri");
+		} else if (this.producerType.equals("sqs") && this.sqsServiceEndpoint == null) {
+			usageForOptions("please specify a service endpoint for sqs", "sqs_service_endpoint");
+		} else if (this.producerType.equals("sqs") && this.sqsSigningRegion == null) {
+			usageForOptions("please specify a signing region for sqs", "sqs_signing_region");
 		} else if (this.producerType.equals("sns") && this.snsTopic == null) {
 			usageForOptions("please specify a topic ARN for SNS", "sns_topic");
 		} else if (this.producerType.equals("pubsub")) {
@@ -1436,5 +1518,14 @@ public class MaxwellConfig extends AbstractConfig {
 		} else {
 			return null;
 		}
+	}
+
+
+	public Boolean getIgnoreMissingSchema() {
+		return ignoreMissingSchema;
+	}
+
+	public void setIgnoreMissingSchema(Boolean ignoreMissingSchema) {
+		this.ignoreMissingSchema = ignoreMissingSchema;
 	}
 }

@@ -1,5 +1,51 @@
 # Maxwell changelog
 
+### [v1.39.2](https://github.com/zendesk/maxwell/releases/tag/v1.39.2)
+
+this is a bug-fix release.  some upgrades broke maxwell's http interface and there's
+a bunch of SQL parser fixes in here.
+
+
+
+_Released 2022-11-02_
+
+### [v1.39.1](https://github.com/zendesk/maxwell/releases/tag/v1.39.1)
+
+This is a faily major release, including lots of MariaDB support fixes
+and a few months worth of patches.
+
+- GTID support for MariaDB
+- Improved JSON column handling for MariaDB
+- add `--pubsub_message_ordering_key`, thanks Billy Braga
+- add `--pubsub_emulator`, thanks Billy Braga
+- add `--ignore_missing_schema` for otherwise untenable schema situations.
+- handle TABLESPACE related DDL
+
+
+
+_Released 2022-11-02_
+
+### [v1.38.0](https://github.com/zendesk/maxwell/releases/tag/v1.38.0)
+
+- Maxwell gets the ability to talk to bigtable!  I have no idea how well it'll work.  I hope it works for you!
+- upgrade protobuf to fix a rabbitmq issue with booleans, I think.
+- rabbitMQ timeouts on connection
+- other fixes.
+- I can't imagine the security department cares about my naming what with what's going on inside 1019.  I guess we'll see.
+
+
+
+
+_Released 2022-07-29_
+
+### [v1.37.7](https://github.com/zendesk/maxwell/releases/tag/v1.37.7)
+
+ - Bump viafoura/metrics-datadog 2.0.0-RC3
+
+
+
+_Released 2022-06-21_
+
 ### [v1.37.6](https://github.com/zendesk/maxwell/releases/tag/v1.37.6)
 
 - In non-GTID mode, Verify that the master's server hasn't changed out
@@ -44,9 +90,7 @@ _Released 2022-03-14_
 
 ### [v1.37.1](https://github.com/zendesk/maxwell/releases/tag/v1.37.1)
 
- - list changes
-
-
+ - upgrade mysql-connector-j 
 
 _Released 2022-03-07_
 

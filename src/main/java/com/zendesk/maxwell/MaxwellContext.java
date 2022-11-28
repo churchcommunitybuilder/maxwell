@@ -64,6 +64,8 @@ public class MaxwellContext {
 	private BootstrapController bootstrapController;
 	private Thread bootstrapControllerThread;
 
+	private Boolean isMariaDB;
+
 	/**
 	 * Contains various Maxwell metrics
 	 */
@@ -524,7 +526,7 @@ public class MaxwellContext {
 				this.producer = new MaxwellKinesisProducer(this, this.config.kinesisStream);
 				break;
 			case "sqs":
-				this.producer = new MaxwellSQSProducer(this, this.config.sqsQueueUri);
+				this.producer = new MaxwellSQSProducer(this, this.config.sqsQueueUri, this.config.sqsServiceEndpoint, this.config.sqsSigningRegion);
 				break;
 			case "sns":
 				this.producer = new MaxwellSNSProducer(this, this.config.snsTopic);
@@ -533,7 +535,7 @@ public class MaxwellContext {
 				this.producer = new NatsProducer(this);
 				break;
 			case "pubsub":
-				this.producer = new MaxwellPubsubProducer(this, this.config.pubsubProjectId, this.config.pubsubTopic, this.config.ddlPubsubTopic);
+				this.producer = new MaxwellPubsubProducer(this, this.config.pubsubProjectId, this.config.pubsubTopic, this.config.ddlPubsubTopic, this.config.pubsubMessageOrderingKey, this.config.pubsubEmulator);
 				break;
 			case "profiler":
 				this.producer = new ProfilerProducer(this);
@@ -549,6 +551,9 @@ public class MaxwellContext {
 				break;
 			case "redis":
 				this.producer = new MaxwellRedisProducer(this);
+				break;
+			case "bigquery":
+				this.producer = new MaxwellBigQueryProducer(this, this.config.bigQueryProjectId, this.config.bigQueryDataset, this.config.bigQueryTable);
 				break;
 			case "none":
 				this.producer = new NoneProducer(this);
@@ -679,5 +684,21 @@ public class MaxwellContext {
 	 */
 	public MaxwellDiagnosticContext getDiagnosticContext() {
 		return this.diagnosticContext;
+	}
+
+	/**
+	 * Is the replication host running MariaDB?
+	 * @return mariadbornot
+	 */
+	public boolean isMariaDB() {
+		if ( this.isMariaDB == null ) {
+			try ( Connection c = this.getReplicationConnection() ) {
+				this.isMariaDB = MaxwellMysqlStatus.isMaria(c);
+			} catch ( SQLException e ) {
+				return false;
+			}
+		}
+
+		return this.isMariaDB;
 	}
 }
