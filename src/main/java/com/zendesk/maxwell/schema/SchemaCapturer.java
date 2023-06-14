@@ -317,7 +317,7 @@ public class SchemaCapturer implements AutoCloseable {
 		}
 	}
 
-	private void detectMariaDBJSON(Schema schema, dbName String) throws SQLException, InvalidSchemaError {
+	private void detectMariaDBJSON(Schema schema, String dbName) throws SQLException, InvalidSchemaError {
 		String checkConstraintSQL = "SELECT CONSTRAINT_SCHEMA, TABLE_NAME, CONSTRAINT_NAME, CHECK_CLAUSE " +
 			"from INFORMATION_SCHEMA.CHECK_CONSTRAINTS " +
 			"where CONSTRAINT_NAME = ? AND CHECK_CLAUSE LIKE 'json_valid(%)'";
