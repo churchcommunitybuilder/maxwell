@@ -4,7 +4,7 @@ import mysql_literal_tokens, mysql_idents, column_definitions, mysql_partition;
 
 alter_table: alter_table_preamble alter_specifications? alter_partition_specification?;
 
-alter_table_preamble: ALTER alter_flags? TABLE table_name;
+alter_table_preamble: ALTER alter_flags? TABLE if_exists? table_name;
 alter_flags: (ONLINE | OFFLINE | IGNORE);
 
 alter_specifications: alter_specification (',' alter_specification)*;
