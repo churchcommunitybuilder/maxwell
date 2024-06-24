@@ -1,5 +1,66 @@
 # Maxwell changelog
 
+### [v1.41.2](https://github.com/zendesk/maxwell/releases/tag/v1.41.2)
+
+- Owen Derby is the Nick Clarke of Maxwell parser bugs
+
+
+
+_Released 2024-06-05_
+
+### [v1.41.1](https://github.com/zendesk/maxwell/releases/tag/v1.41.1)
+
+- fix 2 parser issues, one mariadb and one "tablespace" specific
+- upgrade lz4 dep for security
+
+
+
+_Released 2024-03-24_
+
+### [v1.41.0](https://github.com/zendesk/maxwell/releases/tag/v1.41.0)
+
+- javascript filters are now passed a second, optional dicionary
+  argument which persists between filter invocations.
+
+
+
+_Released 2023-11-30_
+
+### [v1.40.6](https://github.com/zendesk/maxwell/releases/tag/v1.40.6)
+
+- fix 2 parser bugs
+- upgrade jackson for security
+
+
+
+_Released 2023-11-04_
+
+### [v1.40.5](https://github.com/zendesk/maxwell/releases/tag/v1.40.5)
+
+- Fix a bug introduced in v1.40.2 in the kafka producer.
+
+
+
+_Released 2023-09-09_
+
+### [v1.40.4](https://github.com/zendesk/maxwell/releases/tag/v1.40.4)
+
+- add support for mariadb's DROP COLUMN IF EXISTS
+
+
+
+_Released 2023-09-01_
+
+### [v1.40.3](https://github.com/zendesk/maxwell/releases/tag/v1.40.3)
+
+- bugfix for "rename tables"
+- bugfix for temporary tables that rollback inside transactions
+- sns+localstack support
+
+
+
+_Released 2023-08-27_
+
 ### [v1.40.2](https://github.com/zendesk/maxwell/releases/tag/v1.40.2)
 
 - fix dumb bug in last release

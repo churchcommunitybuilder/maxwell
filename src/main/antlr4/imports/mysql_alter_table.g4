@@ -2,10 +2,13 @@ grammar mysql_alter_table;
 
 import mysql_literal_tokens, mysql_idents, column_definitions, mysql_partition;
 
-alter_table: alter_table_preamble alter_specifications? alter_partition_specification?;
+alter_table: alter_table_preamble alter_specifications? alter_partition_specification? alter_post_flags?;
 
-alter_table_preamble: ALTER alter_flags? TABLE if_exists? table_name;
+alter_table_preamble: ALTER alter_flags? TABLE if_exists? table_name wait_flag?;
 alter_flags: (ONLINE | OFFLINE | IGNORE);
+wait_flag:
+   (WAIT integer | NOWAIT);
+
 
 alter_specifications: alter_specification (',' alter_specification)*;
 alter_specification:
@@ -65,14 +68,21 @@ ignored_alter_specifications:
     | FORCE
     | DISCARD TABLESPACE
     | IMPORT TABLESPACE
-    | ALGORITHM '='? algorithm_type
-    | LOCK '='? lock_type
     | RENAME (INDEX|KEY) name TO name
     | DROP CHECK name
     | DROP CONSTRAINT if_exists? name
+    | alter_post_flag
     ;
-  algorithm_type: DEFAULT | INPLACE | COPY | INSTANT;
-  lock_type: DEFAULT | NONE | SHARED | EXCLUSIVE;
+
+alter_post_flags:
+  alter_post_flag (',' alter_post_flag)*;
+
+alter_post_flag:
+  ALGORITHM '='? algorithm_type
+  | LOCK '='? lock_type;
+ 
+algorithm_type: DEFAULT | INPLACE | COPY | INSTANT | NOCOPY;
+lock_type: DEFAULT | NONE | SHARED | EXCLUSIVE;
 
 partition_names: id (',' id)*;
 alter_ordering: alter_ordering_column (ASC|DESC)?;

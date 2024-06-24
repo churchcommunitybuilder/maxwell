@@ -28,6 +28,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+/**
+ * Does the bulk of the actual bootstrapping work
+ */
 public class SynchronousBootstrapper {
 	class BootstrapAbortException extends Exception {
 		public BootstrapAbortException(String message) {
@@ -46,6 +49,14 @@ public class SynchronousBootstrapper {
 	}
 
 
+	/**
+	 * Orchestrates the bootstrap process.
+	 *
+	 * @param task            the bootstrap task
+	 * @param producer        a producer to push rows to
+	 * @param currentSchemaID the current schema id
+	 * @throws Exception
+	 */
 	public void startBootstrap(BootstrapTask task, AbstractProducer producer, Long currentSchemaID) throws Exception {
 		try {
 			performBootstrap(task, producer, currentSchemaID);
@@ -86,6 +97,16 @@ public class SynchronousBootstrapper {
 		return table;
 	}
 
+	/**
+	 * Perform bootstrap; query all rows from the table in question,
+	 * and stream the results from the database into the producer.  Periodically
+	 * we update the `inserted_rows` column in the boostrapping table.
+	 *
+	 * @param task            bootstrap task
+	 * @param producer        current producer
+	 * @param currentSchemaID current schema id
+	 * @throws Exception
+	 */
 	public void performBootstrap(BootstrapTask task, AbstractProducer producer, Long currentSchemaID) throws Exception {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("bootstrapping requested for {}", task.logString());
@@ -140,13 +161,13 @@ public class SynchronousBootstrapper {
 		}
 	}
 
-	protected Connection getConnection(String databaseName) throws SQLException {
+	private Connection getConnection(String databaseName) throws SQLException {
 		Connection conn = context.getReplicationConnection();
 		conn.setCatalog(databaseName);
 		return conn;
 	}
 
-	protected Connection getStreamingConnection(String databaseName) throws SQLException, URISyntaxException {
+	private Connection getStreamingConnection(String databaseName) throws SQLException, URISyntaxException {
 		Connection conn = DriverManager.getConnection(context.getConfig().replicationMysql.getConnectionURI(false), context.getConfig().replicationMysql.user, context.getConfig().replicationMysql.password);
 		conn.setCatalog(databaseName);
 		return conn;
@@ -168,6 +189,13 @@ public class SynchronousBootstrapper {
 		return row;
 	}
 
+	/**
+	 * Output a "bootstrap complete" row
+	 *
+	 * @param task     bootstrap task
+	 * @param producer current producer
+	 * @throws Exception
+	 */
 	public void completeBootstrap(BootstrapTask task, AbstractProducer producer) throws Exception {
 		producer.push(bootstrapEventRowMap("bootstrap-complete", task.database, task.table, new ArrayList<>(), task.comment));
 		LOGGER.info("bootstrapping ended for " + task.logString());

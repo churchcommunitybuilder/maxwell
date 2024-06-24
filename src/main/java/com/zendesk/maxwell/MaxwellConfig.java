@@ -769,14 +769,16 @@ public class MaxwellConfig extends AbstractConfig {
 			.withOptionalArg().ofType(Boolean.class);
 		parser.accepts( "output_push_timestamp", "include a microsecond timestamp representing when Maxwell sent a record. default: false" )
 			.withOptionalArg().ofType(Boolean.class);
+		parser.accepts( "output_naming_strategy", "optionally use an alternate name for fields: underscore_to_camelcase" )
+			.withOptionalArg().ofType(String.class);
 		parser.accepts( "exclude_columns", "suppress these comma-separated columns from output" )
 			.withRequiredArg();
 		parser.accepts("secret_key", "The secret key for the AES encryption" )
 			.withRequiredArg();
 		parser.accepts("encrypt", "encryption mode: [none|data|all]. default: none" )
 			.withRequiredArg();
-		parser.accepts( "row_query_max_length", "truncates the 'query' field if it is above this length. default: false" )
-			.withOptionalArg().ofType(Boolean.class);
+		parser.accepts( "row_query_max_length", "truncates the 'query' field if it is above this length. default: 0 (disabled)" )
+			.withOptionalArg().ofType(Integer.class);
 
 		parser.section( "filtering" );
 
@@ -856,7 +858,7 @@ public class MaxwellConfig extends AbstractConfig {
 
 		parser.separator();
 
-		parser.accepts( "kafka_version", "kafka client library version: 0.8.2.2|0.9.0.1|0.10.0.1|0.10.2.1|0.11.0.1|1.0.0")
+		parser.accepts( "kafka_version", "kafka client library version: 0.8.2.2|0.9.0.1|0.10.0.1|0.10.2.1|0.11.0.1|1.0.0|2.7.0|3.4.0")
 				.withRequiredArg();
 		parser.accepts( "kafka_key_format", "how to format the kafka key; array|hash" )
 				.withRequiredArg();
