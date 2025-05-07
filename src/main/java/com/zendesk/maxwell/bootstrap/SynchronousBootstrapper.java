@@ -270,19 +270,13 @@ public class SynchronousBootstrapper {
 			else if (columnDefinition instanceof DateColumnDef)
 				columnValue = resultSet.getString(columnIndex);
 			else if (columnDefinition instanceof DateTimeColumnDef)
-				try {
-					columnValue = resultSet.getObject(columnIndex);
-				} catch ( SQLException e ) {
-					columnValue = null;
-				} catch ( DateTimeException e ) {
-					columnValue = null;
-				}
+				columnValue = resultSet.getString(columnIndex);
 			else
 				columnValue = resultSet.getObject(columnIndex);
 
 			row.putData(
 				columnDefinition.getName(),
-				columnValue == null ? null : columnDefinition.asJSON(columnValue, new MaxwellOutputConfig())
+				columnValue == null ? null : columnDefinition.asJSON(columnValue, context.getConfig().outputConfig)
 			);
 
 			++columnIndex;
