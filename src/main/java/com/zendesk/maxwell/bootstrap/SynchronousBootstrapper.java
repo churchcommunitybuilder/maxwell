@@ -270,14 +270,7 @@ public class SynchronousBootstrapper {
 			else if (columnDefinition instanceof DateColumnDef)
 				columnValue = resultSet.getString(columnIndex);
 			else if (columnDefinition instanceof DateTimeColumnDef)
-				try {
 					columnValue = resultSet.getString(columnIndex);
-				} catch (SQLException e) {
-					columnValue = null;
-				} catch (DateTimeException e){
-					columnValue = null;
-				}
-					
 			else
 				columnValue = resultSet.getObject(columnIndex);
 
