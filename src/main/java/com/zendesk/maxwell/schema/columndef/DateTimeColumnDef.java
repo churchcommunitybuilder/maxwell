@@ -45,27 +45,6 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 				}
 				return dateStr; 
 			}
-			// } else if (dateStr.length() > 19 && dateStr.charAt(19) == '.') {
-			// 	// Already has fractional seconds, check if we need to pad/truncate
-			// 	long columnLength = getColumnLength();
-			// 	if (columnLength > 0) {
-			// 		int expectedLength = 20 + (int) columnLength;
-			// 		if (dateStr.length() == expectedLength) {
-			// 			return dateStr; // Already correct length
-			// 		} else if (dateStr.length() < expectedLength) {
-			// 			// Pad with zeros
-			// 			StringBuilder sb = new StringBuilder(dateStr);
-			// 			while (sb.length() < expectedLength) {
-			// 				sb.append('0');
-			// 			}
-			// 			return sb.toString();
-			// 		} else {
-			// 			// Truncate if too long
-			// 			return dateStr.substring(0, expectedLength);
-			// 		}
-			// 	} else {
-			// 		return dateStr; // No column length specified, return as-is
-			// 	}
 			 else {
 				return appendFractionalSeconds(dateStr, 0, getColumnLength());
 			}
@@ -95,7 +74,7 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 			// bootstrapper just gives up on bothering with date processing
 			if ( dateStr.equals("0000-00-00 00:00:00") ) {
 				return null;
-			} else if ( config.zeroDatesAsNull && dateStr.length() == 19 &&
+			} else if ( config.zeroDatesAsNull && dateStr.length() == DATETIME_BASE_LENGTH &&
 				((dateStr.charAt(0) == '0' && dateStr.charAt(1) == '0' && dateStr.charAt(2) == '0' && dateStr.charAt(3) == '0') ||
 				(dateStr.charAt(5) == '0' && dateStr.charAt(6) == '0') ||
 				(dateStr.charAt(8) == '0' && dateStr.charAt(9) == '0'))) {
