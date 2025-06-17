@@ -10,6 +10,7 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 	private static final int DATETIME_BASE_LENGTH = 19;
 	private static final int DATETIME_WITH_DOT_LENGTH = 20;
 	private static final int MAX_FRACTIONAL_DIGITS = 6;
+	private static final String ZERO_DATE_TIME = "0000-00-00 00:00:00";
 
 	private DateTimeColumnDef(String name, String type, short pos, Long columnLength) {
 		super(name, type, pos, columnLength);
@@ -54,7 +55,7 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 				if ( config.zeroDatesAsNull )
 					return null;
 				else
-					return appendFractionalSeconds("0000-00-00 00:00:00", 0, getColumnLength());
+					return appendFractionalSeconds(ZERO_DATE_TIME, 0, getColumnLength());
 			}
 		}
 
@@ -72,7 +73,7 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 		if ( value instanceof String ) {
 			String dateStr = (String) value;
 			// bootstrapper just gives up on bothering with date processing
-			if ( dateStr.equals("0000-00-00 00:00:00") ) {
+			if ( dateStr.equals(ZERO_DATE_TIME) ) {
 				return null;
 			} else if ( config.zeroDatesAsNull && dateStr.length() == DATETIME_BASE_LENGTH &&
 				((dateStr.charAt(0) == '0' && dateStr.charAt(1) == '0' && dateStr.charAt(2) == '0' && dateStr.charAt(3) == '0') ||
@@ -86,7 +87,7 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 			if ( config.zeroDatesAsNull )
 				return null;
 			else
-				return "0000-00-00 00:00:00";
+				return ZERO_DATE_TIME;
 		}
 
 		try {
