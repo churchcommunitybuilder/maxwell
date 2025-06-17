@@ -7,6 +7,9 @@ import java.sql.Timestamp;
 public class DateTimeColumnDef extends ColumnDefWithLength {
 
 	private final boolean isTimestamp = getType().equals("timestamp");
+	private static final int DATETIME_BASE_LENGTH = 19;
+	private static final int DATETIME_WITH_DOT_LENGTH = 20;
+	private static final int MAX_FRACTIONAL_DIGITS = 6;
 
 	private DateTimeColumnDef(String name, String type, short pos, Long columnLength) {
 		super(name, type, pos, columnLength);
@@ -22,33 +25,48 @@ public class DateTimeColumnDef extends ColumnDefWithLength {
 		if ( value instanceof String ) {
 			String dateStr = (String) value;
 			// bootstrapper just gives up on bothering with date processing
-			if ( config.zeroDatesAsNull && dateStr.length() == 19 && 
+			if ( config.zeroDatesAsNull && dateStr.length() == DATETIME_BASE_LENGTH && 
 			((dateStr.charAt(0) == '0' && dateStr.charAt(1) == '0' && dateStr.charAt(2) == '0' && dateStr.charAt(3) == '0') ||
             (dateStr.charAt(5) == '0' && dateStr.charAt(6) == '0') ||
             (dateStr.charAt(8) == '0' && dateStr.charAt(9) == '0'))) {
 				return null;
-			} else if (dateStr.length() > 19 && dateStr.charAt(19) == '.') {
-				// Already has fractional seconds, check if we need to pad/truncate
+			} else if (dateStr.length() > DATETIME_BASE_LENGTH && dateStr.charAt(DATETIME_BASE_LENGTH) == '.') { 
 				long columnLength = getColumnLength();
-				if (columnLength > 0) {
-					int expectedLength = 20 + (int) columnLength;
-					if (dateStr.length() == expectedLength) {
-						return dateStr; // Already correct length
-					} else if (dateStr.length() < expectedLength) {
-						// Pad with zeros
-						StringBuilder sb = new StringBuilder(dateStr);
-						while (sb.length() < expectedLength) {
-							sb.append('0');
-						}
-						return sb.toString();
-					} else {
-						// Truncate if too long
-						return dateStr.substring(0, expectedLength);
+				if (columnLength > 0 && columnLength <= MAX_FRACTIONAL_DIGITS) { 
+					int expectedLength = DATETIME_WITH_DOT_LENGTH + (int) columnLength;
+					int currentLength = dateStr.length(); 
+					if (currentLength == expectedLength) { 
+						return dateStr;
+					} else if (currentLength < expectedLength) {
+						return dateStr + "0".repeat(expectedLength - currentLength); 
+					} else { 
+						return dateStr.substring(0, expectedLength); 
 					}
-				} else {
-					return dateStr; // No column length specified, return as-is
 				}
-			} else {
+				return dateStr; 
+			}
+			// } else if (dateStr.length() > 19 && dateStr.charAt(19) == '.') {
+			// 	// Already has fractional seconds, check if we need to pad/truncate
+			// 	long columnLength = getColumnLength();
+			// 	if (columnLength > 0) {
+			// 		int expectedLength = 20 + (int) columnLength;
+			// 		if (dateStr.length() == expectedLength) {
+			// 			return dateStr; // Already correct length
+			// 		} else if (dateStr.length() < expectedLength) {
+			// 			// Pad with zeros
+			// 			StringBuilder sb = new StringBuilder(dateStr);
+			// 			while (sb.length() < expectedLength) {
+			// 				sb.append('0');
+			// 			}
+			// 			return sb.toString();
+			// 		} else {
+			// 			// Truncate if too long
+			// 			return dateStr.substring(0, expectedLength);
+			// 		}
+			// 	} else {
+			// 		return dateStr; // No column length specified, return as-is
+			// 	}
+			 else {
 				return appendFractionalSeconds(dateStr, 0, getColumnLength());
 			}
 		} else if ( value instanceof Long ) {
