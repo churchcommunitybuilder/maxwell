@@ -123,6 +123,9 @@ password=maxwell
 # default is none, which means the field name in JSON is the exact name in MySQL table
 #output_naming_strategy=underscore_to_camelcase
 
+# suppress these columns from output (comma-separated list of column names or regex patterns)
+#exclude_columns=invite_email_message
+
 #       *** kafka ***
 
 # list of kafka brokers

@@ -41,6 +41,8 @@ public class MaxwellOutputConfig {
 		this.outputDDL = false;
 		this.zeroDatesAsNull = false;
 		this.excludeColumns = new ArrayList<>();
+		// Exclude invite_email_message by default as it's not used and can be very large
+		this.excludeColumns.add(Pattern.compile("^invite_email_message$"));
 		this.encryptionMode = EncryptionMode.ENCRYPT_NONE;
 		this.secretKey = null;
 		this.namingStrategy = null;
